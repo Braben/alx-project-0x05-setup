@@ -1,17 +1,31 @@
 import ImageCard from "@/components/common/ImageCard";
-import { imageProps } from "@/interfaces";
 import React, { useState } from "react";
 
 const Home: React.FC = () => {
   const [prompt, setPrompt] = useState<string>("");
   const [imageUrl, setImageUrl] = useState<string>("");
-  const [generatedImages, setGeneratedImages] = useState<imageProps[]>([]);
-
-  const [isloading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleGenerateImage = async () => {
-    console.log("Generating Images");
-    console.log(process.env.NEXT_PUBLIC_GPT_API_KEY);
+    setIsLoading(true);
+    const resp = await fetch("/api/generate-image", {
+      method: "POST",
+      body: JSON.stringify({
+        prompt,
+      }),
+      headers: {
+        "Content-type": "application/json",
+      },
+    });
+
+    if (!resp.ok) {
+      setIsLoading(false);
+      return;
+    }
+    const responseData = await resp.json(); // await resp.json();
+    // setData(responseData);
+    setImageUrl(responseData.message);
+    setIsLoading(false);
   };
 
   return (
@@ -34,10 +48,10 @@ const Home: React.FC = () => {
             onClick={handleGenerateImage}
             className="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
           >
-            {/* {isloading ? "loading..." : "Generate Image"} */}
-            Generate Image
+            {isLoading ? "Loading..." : "Generate Image"}
           </button>
         </div>
+
         {imageUrl && (
           <ImageCard
             action={() => setImageUrl(imageUrl)}
